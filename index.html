@@ -65,13 +65,12 @@
     <div class="clock" id="clock"></div>
     <div class="sound-btn" onclick="toggleSound()">🔊</div>
 
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r132/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.132/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.132/examples/js/objects/Lensflare.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.10.4/gsap.min.js"></script>
 
     <script>
-
         const scene = new THREE.Scene();
 
         const camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 1, 4000);
@@ -81,28 +80,23 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
-
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
         controls.minDistance = 50;
         controls.maxDistance = 2000;
 
-
         const listener = new THREE.AudioListener();
         camera.add(listener);
 
         const sound = new THREE.Audio(listener);
-
 
         const audioLoader = new THREE.AudioLoader();
         audioLoader.load('your-audio-file.mp3', function(buffer) {
             sound.setBuffer(buffer);
             sound.setLoop(true);
             sound.setVolume(0.5);
-
         });
-
 
         let soundOn = false;
         function toggleSound() {
@@ -117,13 +111,11 @@
             }
         }
 
-
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5); 
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.2); // Giảm độ sáng
         scene.add(ambientLight);
 
-        const pointLight = new THREE.PointLight(0xffffff, 1.5, 3000); 
+        const pointLight = new THREE.PointLight(0xffffff, 1.0, 3000); // Giảm độ sáng
         scene.add(pointLight);
-
 
         const textureLoader = new THREE.TextureLoader();
         const textureFlare = textureLoader.load('https://threejs.org/examples/textures/lensflare/lensflare0.png');
@@ -131,15 +123,11 @@
         lensflare.addElement(new THREE.LensflareElement(textureFlare, 700, 0, pointLight.color));
         pointLight.add(lensflare);
 
-
-
-
-        const sunTexture = textureLoader.load('textures/sun.jpg'); 
+        const sunTexture = textureLoader.load('textures/sun.jpg'); // Kết cấu Mặt Trời
         const sunGeometry = new THREE.SphereGeometry(16, 32, 32);
         const sunMaterial = new THREE.MeshBasicMaterial({ map: sunTexture });
         const sun = new THREE.Mesh(sunGeometry, sunMaterial);
         scene.add(sun);
-
 
         const planets = [];
         const planetData = [
@@ -152,7 +140,6 @@
             { name: 'Uranus', size: 7, distance: 176, speed: 0.002, texture: 'textures/uranus.jpg', ring: { innerRadius: 7, outerRadius: 12, texture: 'textures/uranus_ring.png' } },
             { name: 'Neptune', size: 7, distance: 200, speed: 0.001, texture: 'textures/neptune.jpg' }
         ];
-
 
         planetData.forEach(data => {
             const texture = textureLoader.load(data.texture);
@@ -170,14 +157,12 @@
                 planet.add(ring);
             }
 
-
             const orbit = new THREE.Object3D();
             orbit.add(planet);
             orbit.userData = { speed: data.speed, distance: data.distance, angle: Math.random() * Math.PI * 2, name: data.name };
 
             planets.push(orbit);
             scene.add(orbit);
-
 
             const orbitCurve = new THREE.EllipseCurve(
                 0,  0,
@@ -194,11 +179,10 @@
             orbitLine.rotation.x = Math.PI / 2;
             scene.add(orbitLine);
 
-
             if (data.name === 'Earth') {
                 const moonTexture = textureLoader.load('textures/moon.jpg');
                 const moonGeometry = new THREE.SphereGeometry(1.5, 32, 32);
-                const moonMaterial = new THREE.MeshStandardMaterial({ map: moonTexture, color: 0x888888 }); 
+                const moonMaterial = new THREE.MeshStandardMaterial({ map: moonTexture, color: 0x888888 }); // Đổi màu Mặt Trăng thành màu xám
                 const moon = new THREE.Mesh(moonGeometry, moonMaterial);
 
                 const moonOrbit = new THREE.Object3D();
@@ -207,7 +191,6 @@
                 planet.add(moonOrbit);
             }
         });
-
 
         function createStars() {
             const starsGeometry = new THREE.BufferGeometry();
@@ -224,7 +207,6 @@
             scene.add(starField);
         }
         createStars();
-
 
         function createMeteor() {
             const meteorGeometry = new THREE.SphereGeometry(0.5, 32, 32);
@@ -252,7 +234,6 @@
 
         setInterval(createMeteor, 5000);
 
-        
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
 
@@ -280,14 +261,11 @@
         }
         window.addEventListener('click', onMouseClick, false);
 
-        
         let focusedPlanet = null;
 
-        
         function showInfo(planetName, planetObject) {
             focusedPlanet = planetObject;
 
-        
             let infoContent = "";
             switch (planetName) {
                 case 'mercury':
@@ -320,7 +298,6 @@
             document.getElementById('info-content').innerHTML = infoContent;
             document.getElementById('info').style.display = 'block';
 
-        
             gsap.to(camera.position, {
                 duration: 1,
                 x: planetObject.getWorldPosition(new THREE.Vector3()).x + 20,
@@ -330,16 +307,13 @@
             controls.target.copy(planetObject.getWorldPosition(new THREE.Vector3()));
             controls.update();
 
-        
             controls.enableRotate = false;
             planetObject.userData.zoomed = true;
         }
 
-        
         function closeInfo() {
             document.getElementById('info').style.display = 'none';
             if (focusedPlanet) {
-                // Trở về vị trí ban đầu
                 gsap.to(camera.position, {
                     duration: 1,
                     x: 0,
@@ -354,7 +328,6 @@
             }
         }
 
-        
         function updateClock() {
             let now = new Date();
             let hours = now.getHours();
@@ -375,11 +348,9 @@
         }
         setInterval(updateClock, 1000);
 
-        
         function animate() {
             requestAnimationFrame(animate);
 
-        
             planets.forEach(orbit => {
                 const planet = orbit.children[0];
 
@@ -389,13 +360,11 @@
                     const z = orbit.userData.distance * Math.sin(orbit.userData.angle);
                     orbit.position.set(x, 0, z);
 
-        
                     planet.rotation.y += 0.005;
                 } else {
                     planet.rotation.y += 0.005;
                 }
 
-                
                 if (planet.userData.name === 'Earth') {
                     const moonOrbit = planet.children.find(child => child.type === "Object3D");
                     if (moonOrbit) {
@@ -421,6 +390,5 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
         }
     </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.10.4/gsap.min.js"></script>
 </body>
 </html>
