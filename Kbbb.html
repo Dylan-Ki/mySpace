@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kéo Búa Bao</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            text-align: center;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .choices {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        .choice {
+            margin: 0 10px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        .choice:hover {
+            transform: scale(1.1);
+        }
+        .result {
+            font-size: 24px;
+            margin: 20px 0;
+        }
+        .scoreboard {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+        }
+        .score {
+            font-size: 18px;
+        }
+        .winner {
+            animation: winnerAnimation 0.5s forwards;
+        }
+        @keyframes winnerAnimation {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.5); }
+            100% { transform: scale(1); }
+        }
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            display: none;
+        }
+        .overlay-content {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .overlay-content button {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .player, .computer {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        .player img, .computer img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin-right: 20px;
+        }
+        .action {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+        }
+        .action img {
+            width: 150px;
+            height: 150px;
+            margin: 0 20px;
+            transition: transform 0.3s;
+        }
+        .action img.winner {
+            transform: scale(1.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Kéo Búa Bao</h1>
+        <div class="player">
+            <img src="https://via.placeholder.com/100?text=Player" alt="Player">
+            <div class="score" id="player-score">Người chơi: 0</div>
+        </div>
+        <div class="choices">
+            <img src="https://via.placeholder.com/100?text=Kéo" alt="Kéo" class="choice" id="rock">
+            <img src="https://via.placeholder.com/100?text=Búa" alt="Búa" class="choice" id="paper">
+            <img src="https://via.placeholder.com/100?text=Bao" alt="Bao" class="choice" id="scissors">
+        </div>
+        <div class="result" id="result"></div>
+        <div class="computer">
+            <img src="https://via.placeholder.com/100?text=Computer" alt="Computer">
+            <div class="score" id="computer-score">Máy tính: 0</div>
+        </div>
+    </div>
+    <div class="overlay" id="overlay">
+        <div class="overlay-content" id="overlay-content">
+            <p id="overlay-message"></p>
+            <button onclick="continueGame()">Chơi tiếp</button>
+            <button onclick="endGame()">Dừng lại</button>
+        </div>
+    </div>
+    <div class="overlay" id="end-overlay">
+        <div class="overlay-content">
+            <p>Trò chơi kết thúc! Bạn có muốn chơi lại không?</p>
+            <button onclick="restartGame()">Chơi lại</button>
+            <button onclick="exitGame()">Thoát</button>
+        </div>
+    </div>
+    <script>
+        const choices = document.querySelectorAll('.choice');
+        const result = document.getElementById('result');
+        const playerScoreElem = document.getElementById('player-score');
+        const computerScoreElem = document.getElementById('computer-score');
+        const overlay = document.getElementById('overlay');
+        const overlayContent = document.getElementById('overlay-content');
+        const endOverlay = document.getElementById('end-overlay');
+        let playerScore = 0;
+        let computerScore = 0;
+
+        choices.forEach(choice => choice.addEventListener('click', playGame));
+
+        function playGame(e) {
+            const playerChoice = e.target.id;
+            const computerChoice = getComputerChoice();
+            const winner = getWinner(playerChoice, computerChoice);
+            showResult(winner, playerChoice, computerChoice);
+            updateScore(winner);
+            checkGameEnd();
+        }
+
+        function getComputerChoice() {
+            const choices = ['rock', 'paper', 'scissors'];
+            const randomIndex = Math.floor(Math.random() * choices.length);
+            return choices[randomIndex];
+        }
+
+        function getWinner(player, computer) {
+            if (player === computer) {
+                return 'draw';
+            } else if (
+                (player === 'rock' && computer === 'scissors') ||
+                (player === 'paper' && computer === 'rock') ||
+                (player === 'scissors' && computer === 'paper')
+            ) {
+                return 'player';
+            } else {
+                return 'computer';
+            }
+        }
+
+        function showResult(winner, playerChoice, computerChoice) {
+            const playerImg = document.getElementById(playerChoice);
+            const computerImg = document.getElementById(computerChoice);
+            if (winner === 'player') {
+                result.innerHTML = `Bạn thắng! ${capitalize(playerChoice)} đánh bại ${capitalize(computerChoice)}`;
+                playerImg.classList.add('winner');
+                setTimeout(() => playerImg.classList.remove('winner'), 500);
+            } else if (winner === 'computer') {
+                result.innerHTML = `Bạn thua! ${capitalize(computerChoice)} đánh bại ${capitalize(playerChoice)}`;
+                computerImg.classList.add('winner');
+                setTimeout(() => computerImg.classList.remove('winner'), 500);
+            } else {
+                result.innerHTML = `Hòa! Cả hai đều chọn ${capitalize(playerChoice)}`;
+            }
+        }
+
+        function capitalize(word) {
+            return word.charAt(0).toUpperCase() + word.slice(1);
+        }
+
+        function updateScore(winner) {
+            if (winner === 'player') {
+                playerScore++;
+                playerScoreElem.textContent = `Người chơi: ${playerScore}`;
+            } else if (winner === 'computer') {
+                computerScore++;
+                computerScoreElem.textContent = `Máy tính: ${computerScore}`;
+            }
+        }
+
+        function checkGameEnd() {
+            if (playerScore === 10 || computerScore === 10) {
+                endOverlay.style.display = 'flex';
+            } else {
+                overlay.style.display = 'flex';
+                overlayContent.querySelector('#overlay-message').textContent = 'Bạn có muốn chơi tiếp không?';
+            }
+        }
+
+        function continueGame() {
+            overlay.style.display = 'none';
+        }
+
+        function endGame() {
+            overlay.style.display = 'none';
+            endOverlay.style.display = 'flex';
+        }
+
+        function restartGame() {
+            playerScore = 0;
+            computerScore = 0;
+            playerScoreElem.textContent = `Người chơi: ${playerScore}`;
+            computerScoreElem.textContent = `Máy tính: ${computerScore}`;
+            result.textContent = '';
+            endOverlay.style.display = 'none';
+        }
+
+        function exitGame() {
+            window.close();
+        }
+    </script>
+</body>
+</html>
